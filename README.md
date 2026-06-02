@@ -13,7 +13,7 @@ git clone https://github.com/loganjellis/Timey.git
 cd Timey
 ```
 
-## Building (and optionally installing)
+## Beilding (and optionally installing)
 
 ```
 cmake -S . -B build
