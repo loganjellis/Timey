@@ -8,9 +8,13 @@
 typedef struct timey_timestamp
 {
 	/**
-	  The time's hour.
+	  The time's hour in 24-hour format.
 	*/
-	unsigned int hour;
+	unsigned int hour24;
+	/**
+	  The time's hour in 12-hour format.
+	*/
+	unsigned int hour12;
 	/**
 	  The time's minute.
 	*/
@@ -19,6 +23,10 @@ typedef struct timey_timestamp
 	  The time's second.
 	*/
 	unsigned int sec;
+	/**
+	  Either AM or PM according to the current time.
+	*/
+	char period[3];
 } timey_timestamp;
 
 /**
@@ -33,6 +41,14 @@ typedef struct timey_datetime
 	  The timestamp.
 	*/
 	timey_timestamp time;
+	/**
+	  The date's month name.
+	*/
+	char month_name[10];
+	/**
+	  The name of the current day.
+	*/
+	char day_name[10];
 	/**
 	  The date's year.
 	*/
@@ -66,14 +82,16 @@ typedef struct timey_datetime
   Obtains the current time and inserts it into a string buffer.
 
   @note For the buffer to hold the full time, the buffer must
-  have a size of at least 11 bytes.
+  have a size of at least 9 bytes. The buffer will be in the format
+  of "hh:mm:ss."
 */
 TIMEY_API void timey_query_time(char *buffer, size_t buffer_size);
 /**
   Obtains the current date and inserts it into a string buffer.
 
   @note For the buffer to hold the full date, the buffer must
-  have a size of at least 13 bytes.
+  have a size of at least 11 bytes. The buffer will be in the
+  format of "mm-dd-yyyy."
 */
 TIMEY_API void timey_query_date(char *buffer, size_t buffer_size);
 

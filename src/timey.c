@@ -5,8 +5,8 @@
 #include <time.h>
 #include "timey.h"
 
-#define TIMEY_TIME_STR_LEN 11
-#define TIMEY_DATE_STR_LEN 13
+#define TIMEY_TIME_STR_LEN 9
+#define TIMEY_DATE_STR_LEN 11
 
 // obtain and format time
 static void timey_fmt_time(char *buffer, size_t size, const char *fmt)
@@ -33,14 +33,14 @@ void timey_query_time(char *buffer, size_t buffer_size)
 	if(!buffer)
 		return;
 
-	timey_fmt_time(buffer, buffer_size, "[%H:%M:%S]");
+	timey_fmt_time(buffer, buffer_size, "%H:%M:%S");
 }
 void timey_query_date(char *buffer, size_t buffer_size)
 {
 	if(!buffer)
 		return;
 
-	timey_fmt_time(buffer, buffer_size, "[%m-%d-%Y]");
+	timey_fmt_time(buffer, buffer_size, "%m-%d-%Y");
 }
 
 timey_timestamp timey_curr_timestamp()
@@ -54,27 +54,49 @@ timey_timestamp timey_curr_timestamp()
 	// obtain specific time components from string
 	char hour[3], min[3], sec[3];
 
-	memcpy(hour, time + 1, 2);
+	memcpy(hour, time, 2);
 	hour[2] = '\0';
 
-	memcpy(min, time + 4, 2);
+	memcpy(min, time + 3, 2);
 	min[2] = '\0';
 
-	memcpy(sec, time + 7, 2);
+	memcpy(sec, time + 6, 2);
 	sec[2] = '\0';
 
-	ts.hour = strtoul(hour, NULL, 10);
+	ts.hour24 = strtoul(hour, NULL, 10);
+	// convert hour24 to hour12
+	ts.hour12 = ts.hour24;
+	if(ts.hour12 > 12)
+	{
+		ts.hour12 -= 12;
+		strcpy(ts.period, "PM");
+	}
+	else
+		strcpy(ts.period, "AM");
 	ts.min = strtoul(min, NULL, 10);
 	ts.sec = strtoul(sec, NULL, 10);
 
 	return ts;
 }
+static void timey_switch_ampm(timey_timestamp *ts)
+{
+	if(strcmp("AM", ts -> period) == 0)
+		strcpy(ts -> period, "PM");
+	else
+		strcpy(ts -> period, "AM");
+}
 static void timey_next_hour(timey_timestamp *ts)
 {
 	ts -> min -= 60;
-	ts -> hour += 1;
-	if(ts -> hour > 24)
-		ts -> hour -= 24;
+	ts -> hour24 += 1;
+	ts -> hour12 += 1;
+	if(ts -> hour24 > 24)
+		ts -> hour24 -= 24;
+	if(ts -> hour12 > 12)
+	{
+		ts -> hour12 -= 12;
+		timey_switch_ampm(ts);
+	}
 }
 timey_timestamp timey_future_timestamp(timey_timestamp *now, unsigned int hours, unsigned int minutes, unsigned int seconds)
 {
@@ -86,10 +108,17 @@ timey_timestamp timey_future_timestamp(timey_timestamp *now, unsigned int hours,
 	future = *now;
 
 	// add hours
-	future.hour += hours;
+	future.hour24 += hours;
 	// continue to loop back 24 hours if necessary
-	while(future.hour > 24)
-		future.hour -= 24;
+	while(future.hour24 > 24)
+		future.hour24 -= 24;
+	// do the same for hour12
+	future.hour12 += hours;
+	while(future.hour12 > 12)
+	{
+		future.hour12 -= 12;
+		timey_switch_ampm(&future);
+	}
 
 	// add minutes
 	future.min += minutes;
@@ -111,6 +140,100 @@ timey_timestamp timey_future_timestamp(timey_timestamp *now, unsigned int hours,
 	return future;
 }
 
+static void timey_query_month_name(timey_datetime *dt)
+{
+	switch(dt -> month)
+	{
+		case 1:
+			strcpy(dt -> month_name, "January");
+			break;
+		case 2:
+			strcpy(dt -> month_name, "February");
+			break;
+		case 3:
+			strcpy(dt -> month_name, "March");
+			break;
+		case 4:
+			strcpy(dt -> month_name, "April");
+			break;
+		case 5:
+			strcpy(dt -> month_name, "May");
+			break;
+		case 6:
+			strcpy(dt -> month_name, "June");
+			break;
+		case 7:
+			strcpy(dt -> month_name, "July");
+			break;
+		case 8:
+			strcpy(dt -> month_name, "August");
+			break;
+		case 9:
+			strcpy(dt -> month_name, "September");
+			break;
+		case 10:
+			strcpy(dt -> month_name, "October");
+			break;
+		case 11:
+			strcpy(dt -> month_name, "November");
+			break;
+		case 12:
+			strcpy(dt -> month_name, "December");
+			break;
+	}
+}
+static void timey_get_day_name(timey_datetime *dt, int wday)
+{
+	switch(wday)
+	{
+		case 0:
+			strcpy(dt -> day_name, "Sunday");
+			break;
+		case 1:
+			strcpy(dt -> day_name, "Monday");
+			break;
+		case 2:
+			strcpy(dt -> day_name, "Tuesday");
+			break;
+		case 3:
+			strcpy(dt -> day_name, "Wednesday");
+			break;
+		case 4:
+			strcpy(dt -> day_name, "Thursday");
+			break;
+		case 5:
+			strcpy(dt -> day_name, "Friday");
+			break;
+		case 6:
+			strcpy(dt -> day_name, "Saturday");
+			break;
+	}
+}
+static void timey_update_day_name(timey_datetime *dt) // -> // return 0 on failure, 1 on success
+{
+	struct tm time_result = {0};
+	time_result.tm_mday = dt -> day;
+	time_result.tm_mon = dt -> month - 1;
+	time_result.tm_year = dt -> year - 1900;
+
+	if(mktime(&time_result) == -1)
+		return;
+
+	timey_get_day_name(dt, time_result.tm_wday);
+}
+static void timey_query_day_name(timey_datetime *dt)
+{
+	time_t raw = 0;
+	struct tm *time_info;
+
+	time(&raw);
+
+	time_info = localtime(&raw);
+
+	int wday = time_info -> tm_wday; // days since Sunday (0 - 6)
+
+	timey_get_day_name(dt, wday);
+}
 timey_datetime timey_curr_datetime()
 {
 	timey_datetime dt = {0};
@@ -122,20 +245,23 @@ timey_datetime timey_curr_datetime()
 	// obtain specific date-time components from string
 	char month[3], day[3], year[5];
 
-	memcpy(month, date + 1, 2);
+	memcpy(month, date, 2);
 	month[2] = '\0';
 
 	memcpy(day, date + 4, 2);
 	day[2] = '\0';
 
-	memcpy(year, date + 7, 4);
+	memcpy(year, date + 6, 4);
 	year[4] = '\0';
+
+	dt.time = timey_curr_timestamp();
 
 	dt.year = strtoul(year, NULL, 10);
 	dt.month = strtoul(month, NULL, 10);
+	timey_query_month_name(&dt);
 	dt.day = strtoul(day, NULL, 10);
+	timey_query_day_name(&dt);
 	dt.is_leap_year = timey_is_leap_year(dt.year);
-	dt.time = timey_curr_timestamp();
 
 	return dt;
 }
@@ -182,22 +308,39 @@ timey_datetime timey_future_datetime(timey_datetime *now, unsigned int years, un
 	// add to timestamp (while tracking date-time components this time)
 	timey_timestamp *ts = &future.time;
 
-	ts -> hour += hours;
-	while(ts -> hour > 24)
+	ts -> hour24 += hours;
+	while(ts -> hour24 > 24)
 	{
-		ts -> hour -= 24;
+		ts -> hour24 -= 24;
 		timey_add_days(&future, 1);
+	}
+	ts -> hour12 += hours;
+	if(ts -> hour12 == 12)
+	{
+		timey_switch_ampm(ts);
+		timey_add_days(&future, 1);
+	}
+	while(ts -> hour12 > 12)
+	{
+		ts -> hour12 -= 12;
+		timey_switch_ampm(ts);
 	}
 
 	ts -> min += minutes;
 	while(ts -> min > 60)
 	{
 		ts -> min -= 60;
-		ts -> hour += 1;
-		if(ts -> hour > 24)
+		ts -> hour24 += 1;
+		ts -> hour12 += 1;
+		if(ts -> hour24 > 24)
 		{
-			ts -> hour -= 24;
+			ts -> hour24 -= 24;
 			timey_add_days(&future, 1);
+		}
+		if(ts -> hour12 > 12)
+		{
+			ts -> hour12 -= 12;
+			timey_switch_ampm(ts);
 		}
 	}
 
@@ -209,14 +352,24 @@ timey_datetime timey_future_datetime(timey_datetime *now, unsigned int years, un
 		if(ts -> min > 60)
 		{
 			ts -> min -= 60;
-			ts -> hour += 1;
-			if(ts -> hour > 24)
+			ts -> hour24 += 1;
+			ts -> hour12 += 1;
+			if(ts -> hour24 > 24)
 			{
-				ts -> hour -= 24;
+				ts -> hour24 -= 24;
 				timey_add_days(&future, 1);
+			}
+			if(ts -> hour12 > 12)
+			{
+				ts -> hour12 -= 12;
+				timey_switch_ampm(ts);
 			}
 		}
 	}
+
+	// update day and month names
+	timey_query_month_name(&future);
+	timey_update_day_name(&future);
 
 	return future;
 }
