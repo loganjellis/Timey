@@ -19,19 +19,11 @@ int main()
 	print_time(&now.time);
 	printf("\n");
 
-	timey_datetime future = timey_future_datetime(&now, 0, 0, 0, 12, 0, 0);
+	timey_datetime future = timey_future_datetime_from_now(0, 15, 0, 3, 40, 100);
 
 	print_date(&future);
 	print_time(&future.time);
 	printf("\n");
-
-	timey_raw_time raw_time = {0};
-	timey_query_raw_time(&raw_time);
-
-	printf("sec = %lld\n", raw_time.sec);
-	printf("millisec = %lld\n", raw_time.millisec);
-	printf("microsec = %lld\n", raw_time.microsec);
-	printf("nanosec = %lld\n", raw_time.nanosec);
 
 	return 0;
 }

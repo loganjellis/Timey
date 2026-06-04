@@ -151,6 +151,11 @@ timey_timestamp timey_future_timestamp(timey_timestamp *now, unsigned int hours,
 
 	return future;
 }
+timey_timestamp timey_future_timestamp_from_now(unsigned int hours, unsigned int minutes, unsigned int seconds)
+{
+	timey_timestamp now = timey_curr_timestamp();
+	return timey_future_timestamp(&now, hours, minutes, seconds);
+}
 
 static void timey_query_month_name(timey_datetime *dt)
 {
@@ -384,6 +389,11 @@ timey_datetime timey_future_datetime(timey_datetime *now, unsigned int years, un
 	timey_update_day_name(&future);
 
 	return future;
+}
+timey_datetime timey_future_datetime_from_now(unsigned int years, unsigned int months, unsigned int days, unsigned int hours, unsigned int minutes, unsigned int seconds)
+{
+	timey_datetime now = timey_curr_datetime();
+	return timey_future_datetime(&now, years, months, days, hours, minutes, seconds);
 }
 
 bool timey_is_leap_year(unsigned int year)
