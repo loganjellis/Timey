@@ -390,13 +390,11 @@ bool timey_is_leap_year(unsigned int year)
 {
 	return (year % 400 == 0) || (year % 4 == 0 && year % 100 != 0);
 }
-
 static const unsigned int TIMEY_DAYS[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 unsigned int timey_num_days_in_month(unsigned int month)
 {
 	return TIMEY_DAYS[month - 1];
 }
-
 unsigned int timey_num_days_in_dt_month(timey_datetime *dt)
 {
 	if(!dt)

@@ -106,7 +106,7 @@ typedef struct timey_datetime
 	#define TIMEY_API
 #endif
 
-// query current time and date strings:
+// query current time and date:
 
 /**
   Obtains the current raw time in seconds since the epoch
@@ -161,10 +161,15 @@ TIMEY_API timey_datetime timey_future_datetime(timey_datetime *now, unsigned int
 TIMEY_API bool timey_is_leap_year(unsigned int year);
 /**
   Returns the number of days in a month.
+
+  For February, 28 is always returned by this function.
 */
 TIMEY_API unsigned int timey_num_days_in_month(unsigned int month);
 /**
   Returns the number of days in the given date-time's
   month.
+
+  For February, based on if the datetime's year is leap year,
+  either 29 or 28 is returned.
 */
 TIMEY_API unsigned int timey_num_days_in_dt_month(timey_datetime *dt);
