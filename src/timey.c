@@ -2,7 +2,6 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 #include "timey.h"
 
 #define TIMEY_TIME_STR_LEN 9
@@ -27,6 +26,19 @@ static void timey_get_str(char *buffer, size_t size, const char *fmt, ...)
 	va_start(args, fmt);
 	vsnprintf(buffer, size, fmt, args);
 	va_end(args);
+}
+void timey_query_raw_time(timey_raw_time *t)
+{
+	if(!t)
+		return;
+
+	struct timespec ts;
+	timespec_get(&ts, TIME_UTC);
+
+	t -> sec = ts.tv_sec;
+	t -> millisec = t -> sec * 1000LL;
+	t -> microsec = t -> sec * 1000000LL;
+	t -> nanosec = t -> sec * 1000000000LL;
 }
 void timey_query_time(char *buffer, size_t buffer_size)
 {

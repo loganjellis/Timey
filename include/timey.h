@@ -1,5 +1,7 @@
 #pragma once
 
+#include <time.h>
+
 /**
   Holds time data (hour, minute, and second).
 
@@ -28,6 +30,32 @@ typedef struct timey_timestamp
 	*/
 	char period[3];
 } timey_timestamp;
+
+/**
+  Holds raw time data.
+
+  Raw time data is simply the number of seconds since
+  the UNIX epoch (Jan 1, 1970).
+*/
+typedef struct timey_raw_time
+{
+	/**
+	  The number of seconds since the epoch.
+	*/
+	time_t sec;
+	/**
+	  The number of milliseconds since the epoch.
+	*/
+	time_t millisec;
+	/**
+	  The number of microseconds since the epoch.
+	*/
+	time_t microsec;
+	/**
+	  The number of nanoseconds since the epoch.
+	*/
+	time_t nanosec;
+} timey_raw_time;
 
 /**
   Holds time data (hour, minute, and second),
@@ -78,6 +106,13 @@ typedef struct timey_datetime
 	#define TIMEY_API
 #endif
 
+// query current time and date strings:
+
+/**
+  Obtains the current raw time in seconds since the epoch
+  and inserts the time into the given timey_raw_time.
+*/
+TIMEY_API void timey_query_raw_time(timey_raw_time *t);
 /**
   Obtains the current time and inserts it into a string buffer.
 
@@ -94,6 +129,8 @@ TIMEY_API void timey_query_time(char *buffer, size_t buffer_size);
   format of "mm-dd-yyyy."
 */
 TIMEY_API void timey_query_date(char *buffer, size_t buffer_size);
+
+// obtaining timestamps and datetimes:
 
 /**
   Obtains a timestamp with the current time.
@@ -114,6 +151,9 @@ TIMEY_API timey_datetime timey_curr_datetime(void);
   datetime as a starting point.
 */
 TIMEY_API timey_datetime timey_future_datetime(timey_datetime *now, unsigned int years, unsigned int months, unsigned int days, unsigned int hours, unsigned int minutes, unsigned int seconds);
+
+
+// util-functions:
 
 /**
   Determines whether or not a year is a leap year.

@@ -25,5 +25,13 @@ int main()
 	print_time(&future.time);
 	printf("\n");
 
+	timey_raw_time raw_time = {0};
+	timey_query_raw_time(&raw_time);
+
+	printf("sec = %lld\n", raw_time.sec);
+	printf("millisec = %lld\n", raw_time.millisec);
+	printf("microsec = %lld\n", raw_time.microsec);
+	printf("nanosec = %lld\n", raw_time.nanosec);
+
 	return 0;
 }
