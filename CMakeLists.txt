@@ -12,4 +12,4 @@ add_library(timey "${CMAKE_CURRENT_SOURCE_DIR}/src/timey.c")
 
 target_compile_definitions(timey PRIVATE $<$<BOOL:${BUILD_SHARED_LIBS}>:TIMEY_EXPORTS>)
 
-target_include_directories(timey PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_include_directories(timey PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
