@@ -6,10 +6,9 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-option(BUILD_SHARED_LIBS "Build using a shared library." ON)
-
 add_library(timey "${CMAKE_CURRENT_SOURCE_DIR}/src/timey.c")
 
+option(BUILD_SHARED_LIBS "Build using a shared library." ON)
 target_compile_definitions(timey PRIVATE $<$<BOOL:${BUILD_SHARED_LIBS}>:TIMEY_EXPORTS>)
 
 target_include_directories(timey PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
