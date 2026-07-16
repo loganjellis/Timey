@@ -1,6 +1,7 @@
 #pragma once
 
 #include <time.h>
+#include <stdbool.h>
 
 /**
   Holds time data (hour, minute, and second).
@@ -97,10 +98,14 @@ typedef struct timey_datetime
 } timey_datetime;
 
 #ifdef _WIN32
-	#ifdef TIMEY_EXPORTS
-		#define TIMEY_API __declspec(dllexport)
+	#ifdef TIMEY_DLL
+		#ifdef TIMEY_EXPORTS
+			#define TIMEY_API __declspec(dllexport)
+		#else
+			#define TIMEY_API __declspec(dllimport)
+		#endif
 	#else
-		#define TIMEY_API __declspec(dllimport)
+		#define TIMEY_API
 	#endif
 #else
 	#define TIMEY_API
